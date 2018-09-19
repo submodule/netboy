@@ -1,0 +1,3 @@
+# Ignore the serial ports. Probably worth coming up with a better convention.
+*master*
+*slave*

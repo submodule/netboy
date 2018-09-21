@@ -44,7 +44,7 @@ def emit(payloadName, ser):
 
 
 def main():
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         printUsage()
         sys.exit(1)
 

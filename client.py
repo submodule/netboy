@@ -89,6 +89,7 @@ def main():
     ser = serial.Serial(serialPortPath, baudRate)
 
     async def connectAndRun():
+        print(f'[connectAndRun] Connecting to {wsUrl}')
         async with websockets.connect(wsUrl) as websocket:
             print('[connectAndRun] Connected')
             await run(kind, ser, websocket, serverKey)

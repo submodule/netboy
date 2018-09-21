@@ -2,11 +2,10 @@
 Facilitates communication between two clients relaying serial port data.
 
 Communication:
-
-1. Send kind: ``master'', ``slave'' for two-way communication.
-    ``oneway'' for one-way communication, which will not block.
-2. Send key: any string to identify the session.
-3. Send data.
+    1. Send kind: ``master'', ``slave'' for two-way communication.
+        ``oneway'' for one-way communication, which will not block.
+    2. Send key: Any string to identify the session.
+    3. Send data.
 """
 
 from asyncio import Queue
@@ -14,11 +13,29 @@ from collections import defaultdict
 import asyncio
 import websockets
 import uuid
+import sys
 
 WS_HOST = 'localhost'
 WS_PORT = 1337
 clients = dict()
 queues = defaultdict(Queue)
+
+
+def printUsage():
+    print("""
+server.py
+Facilitates communication between two clients relaying serial port data.
+
+Usage:
+    python server.py <host> <port>
+
+Explanation:
+    * host: Host to listen on.
+    * port: Port to listen on.
+
+Examples:
+    python server.py localhost 1337
+    """)
 
 
 def isStop(val):
@@ -69,7 +86,13 @@ async def handler(websocket, path):
 
 
 def main():
-    start_server = websockets.serve(handler, WS_HOST, WS_PORT)
+    if len(sys.argv) < 3:
+        printUsage()
+        sys.exit(1)
+
+    [_, host, port] = sys.argv
+
+    start_server = websockets.serve(handler, host, port)
 
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()

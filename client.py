@@ -7,10 +7,6 @@ import sys
 import asyncio
 import websockets
 
-WS_HOST = 'localhost'
-WS_PORT = 1337
-WS_URL = f'ws://{WS_HOST}:{WS_PORT}'
-
 
 def printUsage():
     print("""
@@ -18,7 +14,8 @@ client.py
 Relays data from a serial data provider to a server and back.
 
 Usage:
-    python client.py <kind> <serialPortPath> <baudRate> <serverKey>
+    python client.py <kind> <serialPortPath> <baudRate>
+        <serverHost> <serverPort> <serverKey>
 
 Explanation:
     * kind:
@@ -28,10 +25,12 @@ Explanation:
             data to the server.
     * serialPortPath: A path to the serial port to the provider.
     * baudRate: Baud rate for the serial port.
+    * serverHost: The host of the websocket server.
+    * serverPort: The port of the websocket server.
     * serverKey: A key that identifies the server session.
 
 Examples:
-    python client.py master /dev/master 9600 cafe
+    python client.py master /dev/master 9600 localhost 1337 cafe
     """)
 
 
@@ -79,15 +78,18 @@ async def run(kind, ser, websocket, serverKey):
 
 
 def main():
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 7:
         printUsage()
         sys.exit(1)
 
-    [_, kind, port, baudRate, serverKey] = sys.argv
-    ser = serial.Serial(port, baudRate)
+    [
+        _, kind, serialPortPath, baudRate, serverHost, serverPort, serverKey
+    ] = sys.argv
+    wsUrl = f'ws://{serverHost}:{serverPort}'
+    ser = serial.Serial(serialPortPath, baudRate)
 
     async def connectAndRun():
-        async with websockets.connect(WS_URL) as websocket:
+        async with websockets.connect(wsUrl) as websocket:
             print('[connectAndRun] Connected')
             await run(kind, ser, websocket, serverKey)
 

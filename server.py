@@ -1,3 +1,14 @@
+"""
+Facilitates communication between two clients relaying serial port data.
+
+Communication:
+
+1. Send kind: ``master'', ``slave'' for two-way communication.
+    ``oneway'' for one-way communication, which will not block.
+2. Send key: any string to identify the session.
+3. Send data.
+"""
+
 from asyncio import Queue
 from collections import defaultdict
 import asyncio
@@ -15,8 +26,10 @@ def isStop(val):
 
 
 async def run(websocket, cid):
+    kind = await websocket.recv()
+    print(f'[run] {cid}@,{kind} Received kind')
     key = await websocket.recv()
-    print(f'[run] {cid}@{key} Received server key')
+    print(f'[run] {cid}@{key},{kind} Received server key')
     queue = queues[key]
 
     async def send():
@@ -29,8 +42,9 @@ async def run(websocket, cid):
         val = await websocket.recv()
         print(f'[run] {cid}@{key} queue <- {val}')
         await queue.put(val)
-        print(f'[run] {cid}@{key} Joining')
-        await queue.join()
+        if kind == 'master' or kind == 'slave':
+            print(f'[run] {cid}@{key} Joining')
+            await queue.join()
 
     if queue.empty():
         print(f'[run] {cid}@{key} Queue empty, receiving')

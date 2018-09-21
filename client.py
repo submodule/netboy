@@ -18,17 +18,20 @@ client.py
 Relays data from a serial data provider to a server and back.
 
 Usage:
-  python client.py <kind> <serialPortPath> <baudRate> <serverKey>
+    python client.py <kind> <serialPortPath> <baudRate> <serverKey>
 
 Explanation:
-  * kind: ``master'' or ``slave''. In a pair of clients, one should be
-      master, one slave.
-  * serialPortPath: A path to the serial port to the provider
-  * baudRate: Baud rate for the serial port
-  * serverKey: A key that identifies the server session
+    * kind:
+        1. ``master'' or ``slave''. In a pair of clients, one should be
+            master, one slave.
+        2. Alternatively, ``oneway''. This means the client only sends
+            data to the server.
+    * serialPortPath: A path to the serial port to the provider.
+    * baudRate: Baud rate for the serial port.
+    * serverKey: A key that identifies the server session.
 
-Example:
-  python client.py master /dev/master 9600 cafe
+Examples:
+    python client.py master /dev/master 9600 cafe
     """)
 
 
@@ -56,6 +59,7 @@ def writeProvider(ser, data):
 
 async def run(kind, ser, websocket, serverKey):
     print(f'[run] Sending server key: {serverKey}')
+    await websocket.send(kind)
     await websocket.send(serverKey)
     while True:
         if kind == 'master':
@@ -63,9 +67,12 @@ async def run(kind, ser, websocket, serverKey):
             await writeServer(websocket, ourByte)
             theirByte = await readServer(websocket)
             writeProvider(ser, theirByte)
-        else:
+        elif kind == 'slave':
             theirByte = await readServer(websocket)
             writeProvider(ser, theirByte)
+            ourByte = readProvider(ser)
+            await writeServer(websocket, ourByte)
+        elif kind == 'oneway':
             ourByte = readProvider(ser)
             await writeServer(websocket, ourByte)
         print('')

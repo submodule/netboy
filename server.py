@@ -44,9 +44,9 @@ def isStop(val):
 
 async def run(websocket, cid):
     kind = await websocket.recv()
-    print(f'[run] {cid}@,{kind} Received kind')
+    print(f'[run] {cid} Received kind: {kind}')
     key = await websocket.recv()
-    print(f'[run] {cid}@{key},{kind} Received server key')
+    print(f'[run] {cid} Received server key: {key}')
     queue = queues[key]
 
     async def send():
